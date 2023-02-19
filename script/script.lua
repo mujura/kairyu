@@ -30,4 +30,31 @@ function Script.CanNormalSummonWithoutTributing(c, description)
     c:RegisterEffect(e1)
 end
 
+local function NormalSummonedWithoutTributing(e)
+    return e:GetHandler():GetMaterialCount() == 0
+end
+
+local function IfNormalSummonedWithoutTributingLevelBecomes(level)
+    return function(e, tp, eg, ep, ev, re, r, rp)
+        local c = e:GetHandler()
+        local e1 = Effect.CreateEffect(c)
+        e1:SetType(EFFECT_TYPE_SINGLE)
+        e1:SetCode(EFFECT_CHANGE_LEVEL)
+        e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+        e1:SetRange(LOCATION_MZONE)
+        e1:SetCondition(NormalSummonedWithoutTributing)
+        e1:SetValue(level)
+        e1:SetReset(RESET_EVENT|RESETS_STANDARD_DISABLE & ~RESET_TOFIELD)
+        c:RegisterEffect(e1)
+    end
+end
+
+function Script.IfNormalSummonedWithoutTributingLevelBecomes(c, level)
+    local e1 = Effect.CreateEffect(c)
+    e1:SetType(EFFECT_TYPE_SINGLE)
+    e1:SetCode(EFFECT_SUMMON_COST)
+    e1:SetOperation(IfNormalSummonedWithoutTributingLevelBecomes(level))
+    c:RegisterEffect(e1)
+end
+
 return Script
