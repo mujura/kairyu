@@ -79,4 +79,46 @@ function Script.IfSpecialSummonedLevelBecomes(c, level)
     c:RegisterEffect(e1)
 end
 
+local function UmiIsOnTheField(tp)
+    local isFaceupUmi = aux.FaceupFilter(Card.IsCode, 22702055)
+    local umiIsOnTheField = Duel.IsExistingMatchingCard(isFaceupUmi, tp, LOCATION_ONFIELD, LOCATION_ONFIELD, 1, nil)
+    local fieldIsTreatedAsUmi = Duel.IsEnvironment(22702055)
+    return umiIsOnTheField or fieldIsTreatedAsUmi
+end
+
+local function DestroyedWhileUmiIsOnTheField(e, tp, eg, ep, ev, re, r, rp)
+    return e:GetHandler():IsReason(REASON_DESTROY)
+        and (UmiIsOnTheField(e:GetHandlerPlayer()) or UmiIsOnTheField(re:GetHandlerPlayer()))
+end
+
+local function WATERNormalMonster(c)
+    return c:IsAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_NORMAL + TYPE_MONSTER) and c:IsSummonable(true, nil)
+end
+
+local function Target1WATERNormalMonsterInYourHand(e, tp, eg, ep, ev, re, r, rp, chk)
+    if chk == 0 then return Duel.IsExistingMatchingCard(WATERNormalMonster, tp, LOCATION_HAND, 0, 1, nil) end
+    local g = Duel.GetMatchingGroup(WATERNormalMonster, tp, LOCATION_HAND, 0, nil)
+    Duel.SetOperationInfo(0, CATEGORY_SUMMON, g, 1, 0, 0)
+end
+
+local function NormalSummon1WATERNormalMonsterFromYourHand(e, tp, eg, ep, ev, re, r, rp)
+    Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SUMMON)
+    local tc = Duel.SelectMatchingCard(tp, WATERNormalMonster, tp, LOCATION_HAND, 0, 1, 1, nil):GetFirst()
+    if tc then
+        Duel.Summon(tp, tc, true, nil)
+    end
+end
+
+function Script.IfThisCardIsDestroyedWhileUmiIsOnTheFieldNormalSummon1WATERNormalMonsterFromYourHand(c)
+    local e1 = Effect.CreateEffect(c)
+    e1:SetCategory(CATEGORY_SUMMON)
+    e1:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_F)
+    e1:SetProperty(EFFECT_FLAG_DAMAGE_STEP + EFFECT_FLAG_DELAY)
+    e1:SetCode(EVENT_TO_GRAVE)
+    e1:SetCondition(DestroyedWhileUmiIsOnTheField)
+    e1:SetTarget(Target1WATERNormalMonsterInYourHand)
+    e1:SetOperation(NormalSummon1WATERNormalMonsterFromYourHand)
+    c:RegisterEffect(e1)
+end
+
 return Script
