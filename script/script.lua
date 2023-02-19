@@ -57,4 +57,26 @@ function Script.IfNormalSummonedWithoutTributingLevelBecomes(c, level)
     c:RegisterEffect(e1)
 end
 
+local function IfSpecialSummonedLevelBecomes(level)
+    return function(e, tp, eg, ep, ev, re, r, rp)
+        local c = e:GetHandler()
+        local e1 = Effect.CreateEffect(c)
+        e1:SetType(EFFECT_TYPE_SINGLE)
+        e1:SetCode(EFFECT_CHANGE_LEVEL)
+        e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+        e1:SetRange(LOCATION_MZONE)
+        e1:SetValue(level)
+        e1:SetReset(RESET_EVENT|(RESETS_STANDARD|RESET_DISABLE) & ~(RESET_TOFIELD|RESET_LEAVE))
+        c:RegisterEffect(e1)
+    end
+end
+
+function Script.IfSpecialSummonedLevelBecomes(c, level)
+    local e1 = Effect.CreateEffect(c)
+    e1:SetType(EFFECT_TYPE_SINGLE)
+    e1:SetCode(EFFECT_SPSUMMON_COST)
+    e1:SetOperation(IfSpecialSummonedLevelBecomes(level))
+    c:RegisterEffect(e1)
+end
+
 return Script
