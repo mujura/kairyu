@@ -124,7 +124,15 @@ end
 function Script.TargetNegateThatCardsEffectsIncludingInTheGY(e, tp, eg, ep, ev, re, r, rp, chk)
     local c = e:GetHandler()
     if chk == 0 then
-        return c:IsDestructable() and not eg:IsContains(c)
+        if not c:IsDestructable() or eg:IsContains(c) then
+            return
+        end
+        for tc in eg:Iter() do
+            if tc:IsNegatable() then
+                return true
+            end
+        end
+        return
     end
     Duel.SetOperationInfo(0, CATEGORY_DESTROY, c, 1, tp, LOCATION_MZONE)
     Duel.SetOperationInfo(0, CATEGORY_DISABLE, eg, 1, 0, 0)
@@ -142,7 +150,7 @@ function Script.DestroyThisCardAndIfYouDoNegateThatCardEffectsIncludingInTheGY(e
         e2:SetCode(EFFECT_DISABLE_EFFECT)
         e2:SetReset(RESET_EVENT + RESETS_STANDARD_EXC_GRAVE)
         for tc in eg:Iter() do
-            if tc:IsType(TYPE_EFFECT) then
+            if tc:IsNegatable() then
                 tc:RegisterEffect(e1)
                 tc:RegisterEffect(e2)
             end
