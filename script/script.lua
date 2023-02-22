@@ -121,21 +121,18 @@ function Script.IfThisCardIsDestroyedWhileUmiIsOnTheFieldNormalSummon1WATERNorma
     c:RegisterEffect(e1)
 end
 
+local function IsNegatable(c)
+    return c:IsNegatable()
+end
+
+function Script.NegatableCardExistsAndIsNotSelf(e, tp, eg, ep, ev, re, r, rp)
+    return eg:IsExists(IsNegatable, 1, nil) and not eg:IsContains(e:GetHandler())
+end
+
 function Script.TargetNegateThatCardsEffectsIncludingInTheGY(e, tp, eg, ep, ev, re, r, rp, chk)
-    local c = e:GetHandler()
-    if chk == 0 then
-        if not c:IsDestructable() or eg:IsContains(c) then
-            return
-        end
-        for tc in eg:Iter() do
-            if tc:IsNegatable() then
-                return true
-            end
-        end
-        return
-    end
-    Duel.SetOperationInfo(0, CATEGORY_DESTROY, c, 1, tp, LOCATION_MZONE)
-    Duel.SetOperationInfo(0, CATEGORY_DISABLE, eg, 1, 0, 0)
+    if chk == 0 then return e:GetHandler():IsDestructable() end
+    Duel.SetOperationInfo(0, CATEGORY_DESTROY, e:GetHandler(), 1, tp, LOCATION_MZONE)
+    Duel.SetOperationInfo(0, CATEGORY_DISABLE, eg:Filter(IsNegatable, nil), 1, 0, 0)
 end
 
 function Script.DestroyThisCardAndIfYouDoNegateThatCardEffectsIncludingInTheGY(e, tp, eg, ep, ev, re, r, rp)
@@ -149,11 +146,9 @@ function Script.DestroyThisCardAndIfYouDoNegateThatCardEffectsIncludingInTheGY(e
         e2:SetType(EFFECT_TYPE_SINGLE)
         e2:SetCode(EFFECT_DISABLE_EFFECT)
         e2:SetReset(RESET_EVENT + RESETS_STANDARD_EXC_GRAVE)
-        for tc in eg:Iter() do
-            if tc:IsNegatable() then
-                tc:RegisterEffect(e1)
-                tc:RegisterEffect(e2)
-            end
+        for tc in eg:Filter(IsNegatable, nil):Iter() do
+            tc:RegisterEffect(e1)
+            tc:RegisterEffect(e2)
         end
     end
 end
